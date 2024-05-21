@@ -1,24 +1,27 @@
 pipeline {
 	agent any
 	stages {
-		stage('Build') { 
+		stage('build') { 
 			steps {
  				sh 'mvn -B -DskipTests clean package' 
 			}
 		}
-		stage('pmd') {
+ 		stage('build image') {
  			steps {
- 				sh 'mvn pmd:pmd'
+ 				sh 'docker build -t teedy2024_manual .'
  			}
  		}
-		stage('surefire-report') {
+ 		stage('upload image') {
  			steps {
- 				sh 'mvn surefire-report:report'
+ 				sh 'docker tag teedy2024_manual 6kevinx9/teedy_local:v1.0'
+ 				sh 'docker push 6kevinx9/teedy_local:v1.0'
  			}
  		}
-		stage('javadoc') {
+ 		stage('run image') {
  			steps {
- 				sh 'mvn javadoc:javadoc --fail-never'
+ 				sh 'docker run -d -p 8084:8080 --name teedy_manual01 teedy2024_manual'
+				sh 'docker run -d -p 8082:8080 --name teedy_manual02 teedy2024_manual'
+				sh 'docker run -d -p 8083:8080 --name teedy_manual03 teedy2024_manual'
  			}
  		}
 	}
